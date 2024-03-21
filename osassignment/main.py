@@ -6,66 +6,65 @@ UPPER_NUM = 10000
 BUFFER_SIZE = 100
 MAX_COUNT = 10000
 
-buffer = []  # Shared buffer to hold generated numbers
-lock = threading.Lock()  # Lock to synchronize access to the shared buffer
-producer_done = False  # Flag to indicate when the producer is done generating numbers
-consumers_done = 0  # Counter to keep track of how many consumer threads have finished
+buffer = []
+lock = threading.Lock()  # lock to sync acc to shared bufferlock
+producer_done = False  # flag so we know when producer done generating nums
+consumers_done = 0
 
-# Function to generate random numbers and populate the buffer
+# func for rand num gen and buffer population
 def producer():
     global producer_done
     for _ in range(MAX_COUNT):
-        num = random.randint(LOWER_NUM, UPPER_NUM)  # Generate a random number
+        num = random.randint(LOWER_NUM, UPPER_NUM)  # RNG
         with lock:
-            buffer.append(num)  # Add the generated number to the buffer
+            buffer.append(num)  
             with open("all.txt", "a") as f:
-                f.write(str(num) + "\n")  # Write the number to the 'all.txt' file
-    producer_done = True  # Set the producer_done flag to True when done
+                f.write(str(num) + "\n") # write to all file
+    producer_done = True 
 
-# Function for consumers to consume odd numbers from the buffer
+# func for odd number buffer consumption
 def consumer_odd():
     global consumers_done
-    while not producer_done or buffer:  # Continue consuming while producer is not done or buffer is not empty
+    while not producer_done or buffer:  # keep going until buffer empty /producer no done
         with lock:
-            if buffer and buffer[-1] % 2 == 1:  # Check if buffer is not empty and the last number is odd
-                num = buffer.pop()  # Remove the last odd number from the buffer
+            if buffer and buffer[-1] % 2 == 1:  # check buffer not empty and if number is odd
+                num = buffer.pop()  # pop odd number
                 with open("odd.txt", "a") as f:
-                    f.write(str(num) + "\n")  # Write the odd number to the 'odd.txt' file
-        if producer_done and not buffer:  # If producer is done and buffer is empty, exit the loop
+                    f.write(str(num) + "\n")  # add odd num to text file
+        if producer_done and not buffer:  # exit condition
             break
-    consumers_done += 1  # Increment the consumers_done counter when done
+    consumers_done += 1 
 
-# Function for consumers to consume even numbers from the buffer
+# func for even number buffer consumption
 def consumer_even():
     global consumers_done
-    while not producer_done or buffer:  # Continue consuming while producer is not done or buffer is not empty
+    while not producer_done or buffer: 
         with lock:
-            if buffer and buffer[-1] % 2 == 0:  # Check if buffer is not empty and the last number is even
-                num = buffer.pop()  # Remove the last even number from the buffer
+            if buffer and buffer[-1] % 2 == 0:  # check empty buffer and number even
+                num = buffer.pop()  # pop even number
                 with open("even.txt", "a") as f:
-                    f.write(str(num) + "\n")  # Write the even number to the 'even.txt' file
-        if producer_done and not buffer:  # If producer is done and buffer is empty, exit the loop
+                    f.write(str(num) + "\n")  # add even num to text file
+        if producer_done and not buffer:
             break
-    consumers_done += 1  # Increment the consumers_done counter when done
+    consumers_done += 1 
 
 if __name__ == "__main__":
-    # Create threads for producer and consumers
+    # thread creation
     producer_thread = threading.Thread(target=producer)
     consumer_odd_thread = threading.Thread(target=consumer_odd)
     consumer_even_thread = threading.Thread(target=consumer_even)
 
-    # Start threads
     producer_thread.start()
     consumer_odd_thread.start()
     consumer_even_thread.start()
 
-    # Wait for all threads to finish
+    # waiting for all to finish
     producer_thread.join()
     consumer_odd_thread.join()
     consumer_even_thread.join()
 
-    # Wait for both consumer threads to finish
+    # wait for both consumer thread to finish
     while consumers_done < 2:
-        pass  # Waiting for consumers to finish
+        pass  
 
-    print("Program execution complete.")  # Print a message when the program execution is complete
+    print("Program execution complete.")
