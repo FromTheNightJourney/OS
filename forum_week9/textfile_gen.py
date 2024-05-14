@@ -1,7 +1,9 @@
 import random
 
-random_numbers = [random.randint(1, 1000) for _ in range(1000)]
+maxRange = 1000
+minRandom = 0
+maxRandom = 4999
 
 with open("nums.txt", "w") as file:
-    for number in random_numbers:
-        file.write(str(number) + "\n")
+    for _ in range(maxRange):
+        file.write(str(random.randint(minRandom, maxRandom)) + "\n")
